@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import TextRewriter from '@/components/TextRewriter'
 import Auth from '@/components/Auth'
+import { User } from '@supabase/supabase-js'
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const supabase = createClient()
 
   useEffect(() => {

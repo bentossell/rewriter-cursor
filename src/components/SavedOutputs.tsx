@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/lib/hooks'
 import { RewriteMode } from '@/lib/openai'
@@ -27,29 +27,7 @@ export default function SavedOutputs() {
   const supabase = createClient()
   const { user } = useUser()
 
-  useEffect(() => {
-    if (user) {
-      loadRewrites()
-    }
-  }, [user])
-
-  // Listen for new saves
-  useEffect(() => {
-    const handleRewritesSaved = (event: Event) => {
-      const customEvent = event as RewriteSavedEvent
-      if (customEvent.detail?.rewrite) {
-        // Add the new rewrite to the start of the list
-        setRewrites(prev => [customEvent.detail!.rewrite, ...prev])
-      }
-    }
-
-    window.addEventListener('rewritesSaved', handleRewritesSaved)
-    return () => {
-      window.removeEventListener('rewritesSaved', handleRewritesSaved)
-    }
-  }, [])
-
-  const loadRewrites = async () => {
+  const loadRewrites = useCallback(async () => {
     if (!user) return
 
     try {
@@ -68,7 +46,29 @@ export default function SavedOutputs() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [user, supabase])
+
+  useEffect(() => {
+    if (user) {
+      loadRewrites()
+    }
+  }, [user, loadRewrites])
+
+  // Listen for new saves
+  useEffect(() => {
+    const handleRewritesSaved = (event: Event) => {
+      const customEvent = event as RewriteSavedEvent
+      if (customEvent.detail?.rewrite) {
+        // Add the new rewrite to the start of the list
+        setRewrites(prev => [customEvent.detail!.rewrite, ...prev])
+      }
+    }
+
+    window.addEventListener('rewritesSaved', handleRewritesSaved)
+    return () => {
+      window.removeEventListener('rewritesSaved', handleRewritesSaved)
+    }
+  }, [])
 
   const startEditing = (rewrite: Rewrite) => {
     setEditingId(rewrite.id)

@@ -8,14 +8,15 @@ export function useUser() {
   const supabase = createClient()
 
   useEffect(() => {
+    const supabaseAuth = supabase.auth
     // Get initial session
     const initUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      const { data: { session } } = await supabaseAuth.getSession()
       setUser(session?.user ?? null)
       setLoading(false)
 
       // Listen for auth changes
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data: { subscription } } = supabaseAuth.onAuthStateChange((_event, session) => {
         setUser(session?.user ?? null)
       })
 
@@ -25,7 +26,7 @@ export function useUser() {
     }
 
     initUser()
-  }, [])
+  }, [supabase.auth])
 
   return { user, loading }
 } 
